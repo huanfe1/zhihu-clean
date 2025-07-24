@@ -7,7 +7,8 @@
         "dev": "vite",
         "build": "tsc && vite build",
         "preview": "tsc && vite build && vite preview",
-        "format": "prettier --write . | grep -v 'unchanged'"
+        "format": "prettier --write . | grep -v 'unchanged'",
+        "postversion": "git push && git push --tags"
     },
     "devDependencies": {
         "@trivago/prettier-plugin-sort-imports": "^5.2.2",
