@@ -1,0 +1,42 @@
+name: Publish Release
+
+on:
+    push:
+        tags:
+            - "v*"
+
+permissions:
+    contents: write
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+            - uses: pnpm/action-setup@v4
+              with:
+                  version: 9
+                  run_install: false
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+                  cache: "pnpm"
+
+            - name: Build Files
+              run: |
+                  pnpm install --frozen-lockfile
+                  pnpm run build
+
+            - name: Publish Release
+              run: npx changelogithub
+              continue-on-error: true
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Upload Build Files To Release
+              uses: softprops/action-gh-release@v2.2.1
+              with:
+                  files: dist/zhihu-clean.user.js
+                  draft: false
