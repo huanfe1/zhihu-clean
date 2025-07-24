@@ -117,3 +117,11 @@ ul.AppHeader-Tabs li:has(a[href*='zhida']) {
     margin-top: 10px;
     transform: rotate(90deg);
 }
+
+// 深色模式
+html[data-theme='dark'] body {
+    color: #cecece;
+    h2.ContentItem-title {
+        color: #cbcbcb;
+    }
+}

@@ -1,4 +1,4 @@
-import { unsafeWindow } from '$';
+import { GM_registerMenuCommand, unsafeWindow } from '$';
 
 import '@/styles/index.scss';
 
@@ -53,3 +53,13 @@ const hookFetch = (...args: Parameters<typeof originalFetch>) => {
     return originalFetch(...args);
 };
 unsafeWindow.fetch = hookFetch;
+
+// 深浅主题切换
+GM_registerMenuCommand('深浅主题切换（将刷新页面）', () => {
+    const theme = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
+    const url = new URL(location.href);
+    const params = new URLSearchParams(url.search);
+    params.set('theme', theme);
+    url.search = params.toLocaleString();
+    location.href = url.href;
+});
