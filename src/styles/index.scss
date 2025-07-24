@@ -1,0 +1,119 @@
+// 顶部栏
+ul.AppHeader-Tabs li:has(a[href*='zhida']) {
+    display: none;
+}
+
+// 首页
+.Topstory-mainColumn {
+    width: inherit;
+
+    .Pc-Business-Card-PcTopFeedBanner,
+    .Pc-feedAd-new,
+    .WriteArea,
+    & + div {
+        display: none;
+    }
+}
+
+// 问题详情页
+.Question-main {
+    .Question-mainColumn,
+    .ListShortcut {
+        width: inherit;
+
+        & + div {
+            display: none;
+        }
+    }
+
+    .AuthorInfo.AnswerItem-authorInfo .FollowButton,
+    .Pc-word-new {
+        display: none;
+    }
+
+    .RichContent--unescapable.is-collapsed .RichContent-inner {
+        min-height: 125px;
+    }
+}
+.QuestionHeader .QuestionHeader-content {
+    width: var(--app-width);
+
+    .QuestionHeader-main {
+        width: inherit;
+    }
+    .QuestionHeader-side {
+        transform: translateX(-100%);
+        * {
+            font-size: 14px;
+        }
+        div.NumberBoard-item .NumberBoard-itemInner {
+            padding-left: 20px;
+        }
+    }
+}
+
+// 用户页面
+.Profile-main {
+    .Profile-mainColumn {
+        width: inherit;
+
+        & + div,
+        .AuthorInfo-Widget {
+            display: none;
+        }
+    }
+}
+
+// 收藏页面
+.CollectionsDetailPage {
+    .CollectionsDetailPage-mainColumn {
+        width: inherit;
+
+        & + div {
+            min-width: 20%;
+        }
+    }
+}
+
+// 等你来答
+.QuestionWaiting {
+    .QuestionWaiting-mainColumn {
+        width: inherit;
+
+        & + div {
+            display: none;
+        }
+    }
+}
+
+// 搜索页面
+.Search-container {
+    .SearchMain {
+        width: inherit;
+
+        & + div {
+            display: none;
+        }
+    }
+}
+
+// 通知页面
+.Notifications-Layout {
+    .Notifications-Main {
+        width: inherit;
+
+        & + div {
+            display: none;
+        }
+    }
+}
+
+// 折叠按钮
+.CornerAnimayedFlex {
+    height: 130px;
+}
+
+.CornerAnimayedFlex > button:nth-child(2) {
+    margin-top: 10px;
+    transform: rotate(90deg);
+}
