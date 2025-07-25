@@ -35,17 +35,21 @@ ul.AppHeader-Tabs li:has(a[href*='zhida']) {
         min-height: 125px;
     }
 }
+
 .QuestionHeader .QuestionHeader-content {
     width: var(--app-width);
 
     .QuestionHeader-main {
         width: inherit;
     }
+
     .QuestionHeader-side {
         transform: translateX(-100%);
+
         * {
             font-size: 14px;
         }
+
         div.NumberBoard-item .NumberBoard-itemInner {
             padding-left: 20px;
         }
@@ -121,7 +125,24 @@ ul.AppHeader-Tabs li:has(a[href*='zhida']) {
 // 深色模式
 html[data-theme='dark'] body {
     color: #cecece;
+
     h2.ContentItem-title {
         color: #cbcbcb;
+    }
+}
+
+// 隐藏关键词高亮
+span:has(> .RichContent-EntityWord) {
+    a {
+        cursor: auto;
+        color: inherit;
+
+        &:active {
+            background: none;
+        }
+    }
+
+    svg {
+        display: none;
     }
 }
