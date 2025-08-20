@@ -112,6 +112,18 @@ ul.AppHeader-Tabs li:has(a[href*='zhida']) {
     }
 }
 
+// 专栏页面
+.Post-Row-Content-left {
+    width: inherit !important;
+    .Post-Author {
+        justify-content: space-between;
+    }
+}
+
+.Post-Row-Content-right {
+    display: none !important;
+}
+
 // 折叠按钮
 .CornerAnimayedFlex {
     height: 130px;
