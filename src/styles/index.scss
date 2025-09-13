@@ -1,3 +1,18 @@
+// 修改字体大小
+.RichText {
+    font-size: var(--font-size);
+}
+
+// 隐私模式
+html[data-privacy='true'] {
+    .QuestionHeader-title {
+        opacity: 0;
+    }
+    [aria-label='知乎'] {
+        visibility: hidden;
+    }
+}
+
 // 顶部栏
 ul.AppHeader-Tabs li:has(a[href*='zhida']) {
     display: none;

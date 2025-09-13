@@ -1,4 +1,4 @@
-import { GM_registerMenuCommand, unsafeWindow } from '$';
+import { GM_registerMenuCommand } from '$';
 
 import '@/styles/index.scss';
 
@@ -40,23 +40,23 @@ document.addEventListener('click', e => {
     }
 });
 
-const originalFetch = unsafeWindow.fetch;
-const hookFetch = (...args: Parameters<typeof originalFetch>) => {
-    // const [url, _] = args;
-    // if ((url as string).startsWith('/api/v3/entity_word')) {
-    //     return Promise.resolve(
-    //         new Response(
-    //             JSON.stringify({
-    //                 search_words: null,
-    //                 ab_params: { qa_searchword: '0' },
-    //             }),
-    //             { status: 200, headers: { 'Content-Type': 'application/json' } },
-    //         ),
-    //     );
-    // }
-    return originalFetch(...args);
-};
-unsafeWindow.fetch = hookFetch;
+// const originalFetch = unsafeWindow.fetch;
+// const hookFetch = (...args: Parameters<typeof originalFetch>) => {
+//     // const [url, _] = args;
+//     // if ((url as string).startsWith('/api/v3/entity_word')) {
+//     //     return Promise.resolve(
+//     //         new Response(
+//     //             JSON.stringify({
+//     //                 search_words: null,
+//     //                 ab_params: { qa_searchword: '0' },
+//     //             }),
+//     //             { status: 200, headers: { 'Content-Type': 'application/json' } },
+//     //         ),
+//     //     );
+//     // }
+//     return originalFetch(...args);
+// };
+// unsafeWindow.fetch = hookFetch;
 
 // 深浅主题切换
 GM_registerMenuCommand('深浅主题切换（将刷新页面）', () => {
@@ -66,4 +66,26 @@ GM_registerMenuCommand('深浅主题切换（将刷新页面）', () => {
     params.set('theme', theme);
     url.search = params.toLocaleString();
     location.href = url.href;
+});
+
+const savedFontSize = localStorage.getItem('custom-font-size');
+if (savedFontSize) {
+    document.documentElement.style.setProperty('--font-size', `${savedFontSize}px`);
+}
+GM_registerMenuCommand('修改字体大小', () => {
+    const currentFontSize = localStorage.getItem('custom-font-size') || '15';
+    const fontSize = prompt('请输入字体大小（默认15px）', currentFontSize);
+    if (fontSize) {
+        const root = document.documentElement;
+        root.style.setProperty('--font-size', `${fontSize}px`);
+        localStorage.setItem('custom-font-size', fontSize);
+    }
+});
+
+GM_registerMenuCommand('隐私模式', () => {
+    if (document.documentElement.dataset.privacy === 'true') {
+        document.documentElement.dataset.privacy = 'false';
+    } else {
+        document.documentElement.dataset.privacy = 'true';
+    }
 });
