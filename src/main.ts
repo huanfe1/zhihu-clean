@@ -37,6 +37,8 @@ document.addEventListener('click', e => {
     // 关键词高亮
     if (e.target.closest('.RichContent-EntityWord')) {
         e.preventDefault();
+        if (!e.target.parentElement) return;
+        e.target.parentElement.innerHTML = e.target.textContent ?? '';
     }
 });
 
