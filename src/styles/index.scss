@@ -163,6 +163,7 @@ span:has(> .RichContent-EntityWord) {
     a {
         cursor: auto;
         color: inherit;
+        user-select: text;
 
         &:active {
             background: none;

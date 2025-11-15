@@ -19,6 +19,8 @@ window.onload = () => {
             toFoldItems.forEach(el => el.click());
             requestAnimationFrame(() => topElement?.scrollIntoView());
         }
+
+        (document.querySelector('.Comments-container button:has(.ZDI--ArrowUpSmall24)') as HTMLElement)?.click();
     });
     document.querySelector('.CornerAnimayedFlex')?.append(button);
 };
@@ -34,31 +36,21 @@ document.addEventListener('click', e => {
         const raw = new URL((e.target as HTMLAnchorElement).href).searchParams.get('target');
         raw && window.open(raw, '_blank');
     }
-    // 关键词高亮
-    if (e.target.closest('.RichContent-EntityWord')) {
+
+    if ((e.target as HTMLElement)?.classList.contains('RichContent-EntityWord')) {
         e.preventDefault();
-        if (!e.target.parentElement) return;
-        e.target.parentElement.innerHTML = e.target.textContent ?? '';
+        e.target.parentElement!.innerHTML = e.target.textContent ?? '';
     }
 });
 
-// const originalFetch = unsafeWindow.fetch;
-// const hookFetch = (...args: Parameters<typeof originalFetch>) => {
-//     // const [url, _] = args;
-//     // if ((url as string).startsWith('/api/v3/entity_word')) {
-//     //     return Promise.resolve(
-//     //         new Response(
-//     //             JSON.stringify({
-//     //                 search_words: null,
-//     //                 ab_params: { qa_searchword: '0' },
-//     //             }),
-//     //             { status: 200, headers: { 'Content-Type': 'application/json' } },
-//     //         ),
-//     //     );
-//     // }
-//     return originalFetch(...args);
-// };
-// unsafeWindow.fetch = hookFetch;
+// 去除关键词高亮
+document.addEventListener('dragstart', (e: Event) => {
+    if (!(e.target instanceof HTMLElement)) return;
+    if (e.target.classList.contains('RichContent-EntityWord')) {
+        e.preventDefault();
+        e.target.parentElement!.innerHTML = e.target.textContent ?? '';
+    }
+});
 
 // 深浅主题切换
 GM_registerMenuCommand('深浅主题切换（将刷新页面）', () => {
@@ -91,3 +83,21 @@ GM_registerMenuCommand('隐私模式', () => {
         document.documentElement.dataset.privacy = 'true';
     }
 });
+
+// const originalFetch = unsafeWindow.fetch;
+// const hookFetch = (...args: Parameters<typeof originalFetch>) => {
+//     // const [url, _] = args;
+//     // if ((url as string).startsWith('/api/v3/entity_word')) {
+//     //     return Promise.resolve(
+//     //         new Response(
+//     //             JSON.stringify({
+//     //                 search_words: null,
+//     //                 ab_params: { qa_searchword: '0' },
+//     //             }),
+//     //             { status: 200, headers: { 'Content-Type': 'application/json' } },
+//     //         ),
+//     //     );
+//     // }
+//     return originalFetch(...args);
+// };
+// unsafeWindow.fetch = hookFetch;
