@@ -157,20 +157,3 @@ html[data-theme='dark'] body {
         color: #cbcbcb;
     }
 }
-
-// 隐藏关键词高亮
-span:has(> .RichContent-EntityWord) {
-    a {
-        cursor: auto;
-        color: inherit;
-        user-select: text;
-
-        &:active {
-            background: none;
-        }
-    }
-
-    svg {
-        display: none;
-    }
-}

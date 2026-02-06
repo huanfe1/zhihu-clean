@@ -1,4 +1,4 @@
-import { GM_registerMenuCommand } from '$';
+import { GM_registerMenuCommand, unsafeWindow } from '$';
 
 import '@/styles/index.scss';
 
@@ -36,20 +36,6 @@ document.addEventListener('click', e => {
         const raw = new URL((e.target as HTMLAnchorElement).href).searchParams.get('target');
         raw && window.open(raw, '_blank');
     }
-
-    if ((e.target as HTMLElement)?.classList.contains('RichContent-EntityWord')) {
-        e.preventDefault();
-        e.target.parentElement!.innerHTML = e.target.textContent ?? '';
-    }
-});
-
-// 去除关键词高亮
-document.addEventListener('dragstart', (e: Event) => {
-    if (!(e.target instanceof HTMLElement)) return;
-    if (e.target.classList.contains('RichContent-EntityWord')) {
-        e.preventDefault();
-        e.target.parentElement!.innerHTML = e.target.textContent ?? '';
-    }
 });
 
 // 深浅主题切换
@@ -81,23 +67,64 @@ GM_registerMenuCommand('隐私模式', () => {
         document.documentElement.dataset.privacy = 'false';
     } else {
         document.documentElement.dataset.privacy = 'true';
+        document.title = '';
     }
 });
 
-// const originalFetch = unsafeWindow.fetch;
-// const hookFetch = (...args: Parameters<typeof originalFetch>) => {
-//     // const [url, _] = args;
-//     // if ((url as string).startsWith('/api/v3/entity_word')) {
-//     //     return Promise.resolve(
-//     //         new Response(
-//     //             JSON.stringify({
-//     //                 search_words: null,
-//     //                 ab_params: { qa_searchword: '0' },
-//     //             }),
-//     //             { status: 200, headers: { 'Content-Type': 'application/json' } },
-//     //         ),
-//     //     );
-//     // }
-//     return originalFetch(...args);
-// };
-// unsafeWindow.fetch = hookFetch;
+const originalParse = unsafeWindow.JSON.parse;
+unsafeWindow.JSON.parse = function (text, reviver?) {
+    let data = originalParse.call(this, text, reviver);
+    // 去除网页初始化数据中的段落划线
+    if (data && data.initialState) {
+        const answers = data.initialState?.entities?.answers;
+        if (answers) {
+            for (const key in answers) {
+                const item = answers[key];
+                if (item.segment_infos) {
+                    item.segment_infos = [];
+                }
+                if (item.content) {
+                    item.content = item.content.replace(/data-pid=".*?"/g, '');
+                }
+            }
+        }
+        // if (data.initialState?.topstory?.recommend?.serverPayloadOrigin?.data) {
+        //     data.initialState?.topstory?.recommend?.serverPayloadOrigin?.data.forEach((item: any) => {
+        //         if (item?.target?.segment_infos) {
+        //             item.target.segment_infos = [];
+        //         }
+        //         if (item?.target?.content) {
+        //             item.target.content = item.target.content.replace(/data-pid=\".*?\"/g, '');
+        //         }
+        //     });
+        // }
+    }
+    return data;
+};
+
+const originalFetch = unsafeWindow.fetch;
+const hookFetch = async (...args: Parameters<typeof originalFetch>) => {
+    const [url, _] = args as [string, RequestInit];
+    if (url.startsWith('/api/v3/')) {
+        return originalFetch(...args)
+            .then(res => res.json())
+            .then(data => {
+                // 去除段落划线
+                data?.data?.forEach((items: any) => {
+                    if (items?.target?.segment_infos) {
+                        items.target.segment_infos = [];
+                    }
+                    if (items?.target?.content) {
+                        items.target.content = items.target.content.replace(/data-pid=\".*?\"/g, '');
+                    }
+                });
+                // 去除关键词高亮
+                if (data?.search_words) {
+                    data.search_words = [];
+                }
+                return new Response(JSON.stringify(data), { status: 200, headers: { 'Content-Type': 'application/json' } });
+            });
+    }
+    return originalFetch(...args);
+};
+unsafeWindow.fetch = hookFetch;
