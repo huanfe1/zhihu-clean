@@ -106,7 +106,7 @@ const originalFetch = unsafeWindow.fetch;
 const hookFetch = async (...args: Parameters<typeof originalFetch>) => {
     const [url, _] = args as [string, RequestInit];
 
-    if (url.startsWith('/api/') && !url.startsWith('/api/v4/inbox')) {
+    if (url.startsWith('/api/')) {
         return originalFetch(...args)
             .then(res => res.json())
             .then(data => {
