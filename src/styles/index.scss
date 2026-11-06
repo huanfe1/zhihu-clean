@@ -18,29 +18,61 @@ ul.AppHeader-Tabs li:has(a[href*='zhida']) {
     display: none;
 }
 
+// 通用：隐藏右侧栏（适配新版 DOM 结构）
+.Question-sideColumn,
+.Question-sideColumn--sticky,
+.Profile-sideColumn,
+.Post-Row-Content-right,
+.GlobalSideBar,
+.Topstory-sideColumn,
+.Search-sideColumn,
+[data-za-detail-view-path-module='RightSideBar'],
+aside[class*='RightSideBar'],
+.CreatorEntrance,
+.HotSearchCard,
+.Card.AuthorCard,
+.Question-sideColumnAdContainer,
+.TopstoryItem--advertCard {
+    display: none !important;
+}
+
+// 通用：主内容列加宽
+.Topstory-mainColumn,
+.Question-mainColumn,
+.ListShortcut,
+.QuestionWaiting-mainColumn,
+.Profile-mainColumn,
+.CollectionsDetailPage-mainColumn,
+.SearchMain,
+.Notifications-Main,
+.Post-Row-Content-left {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+}
+
+// 兜底：侧栏失去语义 class 时，隐藏主内容列相邻兄弟节点
+.Topstory-mainColumn + div,
+.SearchMain + div,
+.Profile-mainColumn + div,
+.CollectionsDetailPage-mainColumn + div,
+.QuestionWaiting-mainColumn + div,
+.Notifications-Main + div {
+    display: none !important;
+}
+
 // 首页
 .Topstory-mainColumn {
-    width: inherit;
-
     .Pc-Business-Card-PcTopFeedBanner,
     .Pc-feedAd-new,
-    .WriteArea,
-    & + div {
-        display: none;
+    .WriteArea {
+        display: none !important;
     }
 }
 
-// 问题详情页
+// 问题详情页（.Question-main 已更名为 .QuestionPage）
+.QuestionPage,
 .Question-main {
-    .Question-mainColumn,
-    .ListShortcut {
-        width: inherit;
-
-        & + div {
-            display: none;
-        }
-    }
-
     .AuthorInfo.AnswerItem-authorInfo .FollowButton,
     .Pc-word-new {
         display: none;
@@ -73,80 +105,42 @@ ul.AppHeader-Tabs li:has(a[href*='zhida']) {
 
 // 用户页面
 .Profile-main {
-    .Profile-mainColumn {
-        width: inherit;
-
-        & + div,
-        .AuthorInfo-Widget {
-            display: none;
-        }
-    }
-}
-
-// 收藏页面
-.CollectionsDetailPage {
-    .CollectionsDetailPage-mainColumn {
-        width: inherit;
-
-        & + div {
-            min-width: 20%;
-        }
-    }
-}
-
-// 等你来答
-.QuestionWaiting {
-    .QuestionWaiting-mainColumn {
-        width: inherit;
-
-        & + div {
-            display: none;
-        }
-    }
-}
-
-// 搜索页面
-.Search-container {
-    .SearchMain {
-        width: inherit;
-
-        & + div {
-            display: none;
-        }
-    }
-}
-
-// 通知页面
-.Notifications-Layout {
-    .Notifications-Main {
-        width: inherit;
-
-        & + div {
-            display: none;
-        }
+    .AuthorInfo-Widget {
+        display: none !important;
     }
 }
 
 // 专栏页面
 .Post-Row-Content-left {
-    width: inherit !important;
     .Post-Author {
         justify-content: space-between;
     }
 }
 
-.Post-Row-Content-right {
+// 隐藏看山按钮（勿隐藏 --kanshan 容器，回到顶部也在其中）
+.KanshanCornerButton,
+.CornerAnimayedFlex--kanshanEntry {
     display: none !important;
 }
 
 // 折叠按钮
-.CornerAnimayedFlex {
-    height: 130px;
+.CornerAnimayedFlex:not(.CornerAnimayedFlex--kanshanEntry) {
+    height: 150px;
 }
 
-.CornerAnimayedFlex > button:nth-child(2) {
+.CornerAnimayedFlex:not(.CornerAnimayedFlex--kanshanEntry) > button:nth-child(2) {
     margin-top: 10px;
-    transform: rotate(90deg);
+
+    svg {
+        transform: rotate(90deg);
+    }
+}
+
+// 兜底：去除段落划线样式
+[data-pid] {
+    border-bottom: none !important;
+    background-image: none !important;
+    cursor: inherit !important;
 }
 
 // 深色模式
@@ -168,4 +162,9 @@ html[data-theme='dark'] body {
 
 button[data-tooltip='解释这篇内容'] {
     display: none;
+}
+
+// 评论框自动聚焦时先收起底部操作栏，点进输入框后再显示
+[data-zh-comment-actions='hide'] {
+    display: none !important;
 }
