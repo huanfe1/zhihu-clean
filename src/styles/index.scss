@@ -8,17 +8,61 @@ html[data-privacy='true'] {
     .QuestionHeader-title {
         opacity: 0;
     }
+
     [aria-label='知乎'] {
         visibility: hidden;
     }
 }
 
-// 顶部栏
-ul.AppHeader-Tabs li:has(a[href*='zhida']) {
+// 顶部栏：圈子右侧到搜索框之间的入口，以及直答；搜索框和加号居中
+.AppHeader {
+    nav {
+        flex: 1;
+
+        a[href*='ring-feeds'] ~ * {
+            display: none !important;
+        }
+    }
+
+    nav + div {
+        justify-content: center !important;
+    }
+
+    nav + div + div {
+        flex: 1.05;
+    }
+
+    a[href*='zhida'] {
+        display: none !important;
+    }
+
+    .TopNavigationSearchBar.SearchBar,
+    .TopNavigationSearchBar .SearchBar-tool {
+        flex: 0 0 auto !important;
+        width: auto !important;
+    }
+
+    .TopNavigationSearchBar .SearchBar-input {
+        margin-left: 0 !important;
+        width: 365px;
+        max-width: min(365px, 100%);
+    }
+
+    .SearchBar-askContainer {
+        margin-left: 16px;
+    }
+
+    .SearchBar input::placeholder {
+        color: transparent !important;
+    }
+}
+
+// 空框下拉里，没有搜索建议时整块隐藏。菜单可能挂到 body 上，不能包进 .AppHeader
+.AutoComplete-menu.SearchBar-menu:not(:has([id^='AutoComplete1-suggest-'])) {
     display: none;
 }
 
-// 通用：隐藏右侧栏（适配新版 DOM 结构）
+// 隐藏右侧栏、广告和入口。看山只藏按钮本身，回到顶部和「全部折叠」还在 .CornerAnimayedFlex 里
 .Question-sideColumn,
 .Question-sideColumn--sticky,
 .Profile-sideColumn,
@@ -32,11 +76,19 @@ aside[class*='RightSideBar'],
 .HotSearchCard,
 .Card.AuthorCard,
 .Question-sideColumnAdContainer,
-.TopstoryItem--advertCard {
+.TopstoryItem--advertCard,
+.Topstory-mainColumn + div,
+.SearchMain + div,
+.Profile-mainColumn + div,
+.CollectionsDetailPage-mainColumn + div,
+.QuestionWaiting-mainColumn + div,
+.Notifications-Main + div,
+.KanshanCornerButton,
+.CornerAnimayedFlex--kanshanEntry,
+button[data-tooltip='解释这篇内容'] {
     display: none !important;
 }
 
-// 通用：主内容列加宽
 .Topstory-mainColumn,
 .Question-mainColumn,
 .ListShortcut,
@@ -51,17 +103,6 @@ aside[class*='RightSideBar'],
     box-sizing: border-box;
 }
 
-// 兜底：侧栏失去语义 class 时，隐藏主内容列相邻兄弟节点
-.Topstory-mainColumn + div,
-.SearchMain + div,
-.Profile-mainColumn + div,
-.CollectionsDetailPage-mainColumn + div,
-.QuestionWaiting-mainColumn + div,
-.Notifications-Main + div {
-    display: none !important;
-}
-
-// 首页
 .Topstory-mainColumn {
     .Pc-Business-Card-PcTopFeedBanner,
     .Pc-feedAd-new,
@@ -103,47 +144,71 @@ aside[class*='RightSideBar'],
     }
 }
 
-// 用户页面
-.Profile-main {
-    .AuthorInfo-Widget {
+.Profile-main .AuthorInfo-Widget {
+    display: none !important;
+}
+
+// 专栏文章页：去掉右侧栏，正文跟窗口一样宽，避免被挤出屏幕左侧
+.Post-content {
+    min-width: 0 !important;
+    --right-sidebar-width: 0px;
+    --container-gap: 0px;
+
+    div:has(> div > div > .Post-Main),
+    div:has(> div > .Post-Main) {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    div:has(> div > div > .Post-Main) {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        box-sizing: border-box;
+    }
+
+    div:has(> div > .Post-Main) {
+        flex: 1 1 auto !important;
+    }
+
+    div:has(> div > .Post-Main) + div {
         display: none !important;
     }
 }
 
-// 专栏页面
-.Post-Row-Content-left {
-    .Post-Author {
-        justify-content: space-between;
-    }
+.Post-Row-Content-left .Post-Author {
+    justify-content: space-between;
 }
 
-// 隐藏看山按钮（勿隐藏 --kanshan 容器，回到顶部也在其中）
-.KanshanCornerButton,
-.CornerAnimayedFlex--kanshanEntry {
-    display: none !important;
-}
-
-// 折叠按钮
 .CornerAnimayedFlex:not(.CornerAnimayedFlex--kanshanEntry) {
     height: 150px;
-}
 
-.CornerAnimayedFlex:not(.CornerAnimayedFlex--kanshanEntry) > button:nth-child(2) {
-    margin-top: 10px;
+    > button:nth-child(2) {
+        margin-top: 10px;
 
-    svg {
-        transform: rotate(90deg);
+        svg {
+            transform: rotate(90deg);
+        }
     }
 }
 
-// 兜底：去除段落划线样式
+// 兜底：节点刚插入、脚本还没清掉时，先把划线和评论搜索词压成普通文字
 [data-pid] {
     border-bottom: none !important;
     background-image: none !important;
     cursor: inherit !important;
 }
 
-// 深色模式
+a.search_word,
+a[href*='search_source=CommentEntity'] {
+    color: inherit !important;
+    cursor: text !important;
+    pointer-events: none !important;
+
+    .search-word-icon {
+        display: none !important;
+    }
+}
+
 html[data-theme='dark'] body {
     color: #cecece;
 
@@ -160,11 +225,6 @@ html[data-theme='dark'] body {
     }
 }
 
-button[data-tooltip='解释这篇内容'] {
-    display: none;
-}
-
-// 评论框自动聚焦时先收起底部操作栏，点进输入框后再显示
 [data-zh-comment-actions='hide'] {
     display: none !important;
 }
