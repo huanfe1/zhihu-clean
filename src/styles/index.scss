@@ -62,6 +62,12 @@ html[data-privacy='true'] {
     display: none;
 }
 
+// 搜索结果顶部的知乎直答。思考中只有 logo，没有字标、链接和结果卡片；总结出来才有字标
+#SearchMain [data-za-detail-view-path-module='SearchResultList'] > div:not([role='listitem']):not(.Card):not(:has(.Card, a)),
+#SearchMain [data-za-detail-view-path-module='SearchResultList'] > div:has(svg[viewBox='0 0 73 20']) {
+    display: none !important;
+}
+
 // 隐藏右侧栏、广告和入口。看山只藏按钮本身，回到顶部和「全部折叠」还在 .CornerAnimayedFlex 里
 .Question-sideColumn,
 .Question-sideColumn--sticky,
