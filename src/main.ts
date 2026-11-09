@@ -60,6 +60,129 @@ function shouldHookFetchUrl(url: string) {
     }
 }
 
+const AD_IDS_KEY = 'zh-ad-ids';
+const AD_BADGE_ATTR = 'data-zh-ad-badge';
+
+function loadAdIds() {
+    try {
+        const raw = sessionStorage.getItem(AD_IDS_KEY);
+        const list: unknown = raw ? JSON.parse(raw) : [];
+        if (!Array.isArray(list)) return new Set<string>();
+        return new Set(list.filter((item): item is string => typeof item === 'string'));
+    } catch {
+        return new Set<string>();
+    }
+}
+
+const adIds = loadAdIds();
+
+function isRecommendFeedUrl(url: string) {
+    try {
+        return new URL(url, location.origin).pathname === '/api/v3/feed/topstory/recommend';
+    } catch {
+        return false;
+    }
+}
+
+function rememberAd(type: string, id: string) {
+    const key = `${type}:${id}`;
+    if (adIds.has(key)) return false;
+    adIds.add(key);
+    try {
+        sessionStorage.setItem(AD_IDS_KEY, JSON.stringify([...adIds]));
+    } catch {
+        // 存不下时，当前页内存里的 id 仍然能用来打标
+    }
+    return true;
+}
+
+function hasPromotionExtra(value: unknown) {
+    return typeof value === 'string' ? value.length > 0 : value != null && typeof value === 'object';
+}
+
+function adKeyFromPath(pathname: string) {
+    for (const key of adIds) {
+        const splitAt = key.indexOf(':');
+        if (splitAt <= 0) continue;
+        const type = key.slice(0, splitAt);
+        const id = key.slice(splitAt + 1);
+        if (!id) continue;
+        const parts = pathname.split('/');
+        for (let i = 0; i < parts.length - 1; i++) {
+            if (parts[i + 1] !== id) continue;
+            if (type === 'answer' && parts[i] === 'answer') return key;
+            if (type === 'article' && parts[i] === 'p') return key;
+        }
+    }
+    return '';
+}
+
+function adBadgeHost(container: Element) {
+    return container.querySelector('.ContentItem-title, .Post-Title') ?? container;
+}
+
+function ensureAdBadge(container: Element) {
+    if (!container.hasAttribute('data-zh-ad') && container.querySelector('[data-zh-ad]')) return;
+    const marked = container.closest('[data-zh-ad]');
+    const card = marked instanceof Element ? marked : container;
+    let badge = card.querySelector(`[${AD_BADGE_ATTR}]`);
+    if (!badge) {
+        card.setAttribute('data-zh-ad', '1');
+        badge = document.createElement('span');
+        badge.setAttribute(AD_BADGE_ATTR, '');
+        badge.textContent = '广告';
+    }
+    const host = adBadgeHost(card);
+    if (badge.parentElement !== host) host.prepend(badge);
+}
+
+function markAnchor(link: HTMLAnchorElement) {
+    let pathname = '';
+    try {
+        pathname = new URL(link.href, location.origin).pathname;
+    } catch {
+        return;
+    }
+    if (!adKeyFromPath(pathname)) return;
+    const card = link.closest('.TopstoryItem') ?? link.closest('.Post-content, .ContentItem');
+    if (card) ensureAdBadge(card);
+}
+
+function markAdContent(root: ParentNode) {
+    if (!adIds.size) return;
+    if (root instanceof HTMLAnchorElement) markAnchor(root);
+    if (!(root instanceof Element) && root !== document.body && root !== document.documentElement) return;
+    root.querySelectorAll('a[href*="/answer/"], a[href*="/p/"]').forEach(node => {
+        if (node instanceof HTMLAnchorElement) markAnchor(node);
+    });
+}
+
+function markCurrentPage() {
+    if (!adKeyFromPath(location.pathname)) return;
+    const container = document.querySelector('.Post-content, .AnswerItem');
+    if (container) ensureAdBadge(container);
+}
+
+function collectRecommendAds(data: unknown) {
+    if (!data || typeof data !== 'object') return;
+    const list = (data as { data?: unknown }).data;
+    if (!Array.isArray(list)) return;
+    let added = false;
+    for (const item of list) {
+        if (!item || typeof item !== 'object') continue;
+        const record = item as { promotion_extra?: unknown; target?: { type?: unknown; id?: unknown } };
+        if (!hasPromotionExtra(record.promotion_extra)) continue;
+        const target = record.target;
+        const type = target?.type === 'article' ? 'article' : target?.type === 'answer' ? 'answer' : '';
+        const id = typeof target?.id === 'string' ? target.id : typeof target?.id === 'number' ? String(target.id) : '';
+        if (!type || !id) continue;
+        if (rememberAd(type, id)) added = true;
+    }
+    if (!added || !document.body) return;
+    markAdContent(document.body);
+    markCurrentPage();
+}
+
 const DOM_CLEAN_SELECTOR = '[data-pid], a.search_word, a[href*="search_source=CommentEntity"], button.Button--primary, .SearchBar input';
 
 function cleanElement(el: Element) {
@@ -184,6 +307,8 @@ function scheduleFoldButton() {
 function startDomCleanup() {
     if (!document.body) return;
     cleanDom(document.body);
+    markAdContent(document.body);
+    markCurrentPage();
     setupFoldButton();
     new MutationObserver(mutations => {
         let addedElement = false;
@@ -201,9 +326,13 @@ function startDomCleanup() {
                 } else {
                     cleanDom(node);
                 }
+                markAdContent(node);
             }
         }
-        if (addedElement) scheduleFoldButton();
+        if (addedElement) {
+            scheduleFoldButton();
+            markCurrentPage();
+        }
     }).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['placeholder'] });
 }
 
@@ -286,13 +415,18 @@ unsafeWindow.JSON.parse = function (text, reviver?) {
 const originalFetch = unsafeWindow.fetch;
 unsafeWindow.fetch = async (...args) => {
     const response = await originalFetch(...args);
-    if (!shouldHookFetchUrl(getFetchUrl(args[0]))) return response;
+    const url = getFetchUrl(args[0]);
+    if (!shouldHookFetchUrl(url)) return response;
     if (!(response.headers.get('content-type') ?? '').includes('json')) return response;
 
     try {
         const text = await response.clone().text();
-        if (!textNeedsClean(text)) return response;
+        const recommend = isRecommendFeedUrl(url);
+        const needsClean = textNeedsClean(text);
+        if (!recommend && !needsClean) return response;
         const data = originalParse(text);
+        if (recommend) collectRecommendAds(data);
+        if (!needsClean) return response;
         if (data && typeof data === 'object') cleanSegmentData(data);
         const headers = new Headers(response.headers);
         headers.set('content-type', 'application/json');
