@@ -185,9 +185,15 @@ function collectRecommendAds(data: unknown) {
 
 const DOM_CLEAN_SELECTOR = '[data-pid], a.search_word, a[href*="search_source=CommentEntity"], button.Button--primary, .SearchBar input';
 
+// 从评论点进搜索页时，顶栏 tab 的链接也会带上 search_source=CommentEntity，不能当成正文搜索词
+function isSearchWordLink(el: HTMLAnchorElement) {
+    if (el.classList.contains('Tabs-link') || el.closest('.SearchTabs, [role="tablist"], .AppHeader')) return false;
+    return el.classList.contains('search_word') || (el.getAttribute('href') ?? '').includes('search_source=CommentEntity');
+}
+
 function cleanElement(el: Element) {
     if (el.hasAttribute('data-pid')) el.removeAttribute('data-pid');
-    if (el instanceof HTMLAnchorElement && (el.classList.contains('search_word') || (el.getAttribute('href') ?? '').includes('search_source=CommentEntity'))) {
+    if (el instanceof HTMLAnchorElement && isSearchWordLink(el)) {
         el.replaceWith(document.createTextNode(el.textContent ?? ''));
         return;
     }
@@ -412,32 +418,41 @@ unsafeWindow.JSON.parse = function (text, reviver?) {
     return data;
 };
 
-const originalFetch = unsafeWindow.fetch;
-unsafeWindow.fetch = async (...args) => {
-    const response = await originalFetch(...args);
-    const url = getFetchUrl(args[0]);
-    if (!shouldHookFetchUrl(url)) return response;
-    if (!(response.headers.get('content-type') ?? '').includes('json')) return response;
-
+// 脱离 window 调用时，Chrome 对 Request 参数会偶发 TypeError: Failed to fetch
+const originalFetch = unsafeWindow.fetch.bind(unsafeWindow);
+unsafeWindow.fetch = function (input, init) {
+    let url = '';
     try {
-        const text = await response.clone().text();
-        const recommend = isRecommendFeedUrl(url);
-        const needsClean = textNeedsClean(text);
-        if (!recommend && !needsClean) return response;
-        const data = originalParse(text);
-        if (recommend) collectRecommendAds(data);
-        if (!needsClean) return response;
-        if (data && typeof data === 'object') cleanSegmentData(data);
-        const headers = new Headers(response.headers);
-        headers.set('content-type', 'application/json');
-        return new Response(JSON.stringify(data), {
-            status: response.status,
-            statusText: response.statusText,
-            headers,
-        });
+        url = getFetchUrl(input);
     } catch {
-        return response;
+        return originalFetch(input, init);
     }
+
+    const pending = originalFetch(input, init);
+    if (!shouldHookFetchUrl(url)) return pending;
+
+    return pending.then(async response => {
+        if (!(response.headers.get('content-type') ?? '').includes('json')) return response;
+        try {
+            const text = await response.clone().text();
+            const recommend = isRecommendFeedUrl(url);
+            const needsClean = textNeedsClean(text);
+            if (!recommend && !needsClean) return response;
+            const data = originalParse(text);
+            if (recommend) collectRecommendAds(data);
+            if (!needsClean) return response;
+            if (data && typeof data === 'object') cleanSegmentData(data);
+            const headers = new Headers(response.headers);
+            headers.set('content-type', 'application/json');
+            return new Response(JSON.stringify(data), {
+                status: response.status,
+                statusText: response.statusText,
+                headers,
+            });
+        } catch {
+            return response;
+        }
+    });
 };
 
 bootstrap(originalParse);

@@ -205,7 +205,7 @@ button[data-tooltip='解释这篇内容'] {
 }
 
 a.search_word,
-a[href*='search_source=CommentEntity'] {
+a[href*='search_source=CommentEntity']:not(.Tabs-link) {
     color: inherit !important;
     cursor: text !important;
     pointer-events: none !important;
