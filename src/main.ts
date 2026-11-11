@@ -61,7 +61,6 @@ function shouldHookFetchUrl(url: string) {
 }
 
 const AD_IDS_KEY = 'zh-ad-ids';
-const AD_BADGE_ATTR = 'data-zh-ad-badge';
 
 function loadAdIds() {
     try {
@@ -91,7 +90,7 @@ function rememberAd(type: string, id: string) {
     try {
         sessionStorage.setItem(AD_IDS_KEY, JSON.stringify([...adIds]));
     } catch {
-        // 存不下时，当前页内存里的 id 仍然能用来打标
+        // 存不下时，当前页内存里的 id 仍然能用来隐藏
     }
     return true;
 }
@@ -117,23 +116,9 @@ function adKeyFromPath(pathname: string) {
     return '';
 }
 
-function adBadgeHost(container: Element) {
-    return container.querySelector('.ContentItem-title, .Post-Title') ?? container;
-}
-
-function ensureAdBadge(container: Element) {
-    if (!container.hasAttribute('data-zh-ad') && container.querySelector('[data-zh-ad]')) return;
-    const marked = container.closest('[data-zh-ad]');
-    const card = marked instanceof Element ? marked : container;
-    let badge = card.querySelector(`[${AD_BADGE_ATTR}]`);
-    if (!badge) {
-        card.setAttribute('data-zh-ad', '1');
-        badge = document.createElement('span');
-        badge.setAttribute(AD_BADGE_ATTR, '');
-        badge.textContent = '广告';
-    }
-    const host = adBadgeHost(card);
-    if (badge.parentElement !== host) host.prepend(badge);
+function hideAdCard(container: Element) {
+    if (container.hasAttribute('data-zh-ad') || container.closest('[data-zh-ad]')) return;
+    container.setAttribute('data-zh-ad', '1');
 }
 
 function markAnchor(link: HTMLAnchorElement) {
@@ -145,7 +130,7 @@ function markAnchor(link: HTMLAnchorElement) {
     }
     if (!adKeyFromPath(pathname)) return;
     const card = link.closest('.TopstoryItem') ?? link.closest('.Post-content, .ContentItem');
-    if (card) ensureAdBadge(card);
+    if (card) hideAdCard(card);
 }
 
 function markAdContent(root: ParentNode) {
@@ -160,7 +145,7 @@ function markAdContent(root: ParentNode) {
 function markCurrentPage() {
     if (!adKeyFromPath(location.pathname)) return;
     const container = document.querySelector('.Post-content, .AnswerItem');
-    if (container) ensureAdBadge(container);
+    if (container) hideAdCard(container);
 }
 
 function collectRecommendAds(data: unknown) {

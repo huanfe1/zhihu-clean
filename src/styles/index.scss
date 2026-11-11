@@ -239,45 +239,5 @@ html[data-theme='dark'] body {
 [data-zh-ad].Post-content,
 [data-zh-ad].ContentItem,
 [data-zh-ad].AnswerItem {
-    border: 2px solid #fa8c16 !important;
-}
-
-[data-zh-ad] .ContentItem-title,
-[data-zh-ad] .Post-Title {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-[data-zh-ad] .ContentItem-title > a,
-[data-zh-ad] .Post-Title > a {
-    min-width: 0;
-}
-
-[data-zh-ad-badge] {
-    display: inline-flex;
-    flex: none;
-    align-items: center;
-    box-sizing: border-box;
-    height: 18px;
-    margin: 0;
-    padding: 0 4px;
-    border-radius: 4px;
-    background: rgba(133, 144, 166, 0.16);
-    color: #8590a6;
-    font-size: 12px;
-    font-weight: 500;
-    line-height: 18px;
-}
-
-html[data-theme='dark'] [data-zh-ad].TopstoryItem,
-html[data-theme='dark'] [data-zh-ad].Post-content,
-html[data-theme='dark'] [data-zh-ad].ContentItem,
-html[data-theme='dark'] [data-zh-ad].AnswerItem {
-    border-color: #ffa940 !important;
-}
-
-html[data-theme='dark'] [data-zh-ad-badge] {
-    background: rgba(133, 144, 166, 0.22);
-    color: #9aa3b2;
+    display: none !important;
 }
