@@ -154,26 +154,11 @@ button[data-tooltip='解释这篇内容'] {
     display: none !important;
 }
 
-// 专栏文章页：去掉右侧栏，正文跟窗口一样宽，避免被挤出屏幕左侧
+// 专栏文章页：藏掉右侧栏，正文只在居中容器里伸开。外层不要改成 100%，否则会铺满窗口
 .Post-content {
-    min-width: 0 !important;
-    --right-sidebar-width: 0px;
-    --container-gap: 0px;
-
-    div:has(> div > div > .Post-Main),
-    div:has(> div > .Post-Main) {
-        width: 100% !important;
-        max-width: 100% !important;
-    }
-
-    div:has(> div > div > .Post-Main) {
-        margin-left: 0 !important;
-        margin-right: 0 !important;
-        box-sizing: border-box;
-    }
-
     div:has(> div > .Post-Main) {
         flex: 1 1 auto !important;
+        min-width: 0 !important;
     }
 
     div:has(> div > .Post-Main) + div {
